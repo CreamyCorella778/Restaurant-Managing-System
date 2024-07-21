@@ -1,0 +1,17 @@
+﻿cl : command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
+  odbcsql.cpp
+  SubBrand.cpp
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\SubBrand.h(5,7): error C2039: 'string': is not a member of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\predefined C++ types (compiler internal)(341): message : see declaration of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\SubBrand.h(5,14): error C3646: 'BrandName': unknown override specifier
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\SubBrand.h(5,23): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+  Address.cpp
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(7,7): error C2039: 'string': is not a member of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\predefined C++ types (compiler internal)(341): message : see declaration of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(7,14): error C3646: 'Province': unknown override specifier
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(7,22): error C2059: syntax error: ','
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(7,58): error C2238: unexpected token(s) preceding ';'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(11,28): error C2039: 'string': is not a member of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\predefined C++ types (compiler internal)(341): message : see declaration of 'std'
+C:\Users\user\source\repos\QuanLyNhaHang\QLNH\Address.h(11,35): error C2061: syntax error: identifier 'string'
+  Generating Code...
