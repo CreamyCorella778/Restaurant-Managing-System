@@ -173,6 +173,4 @@ void Customer::Login(SQLHSTMT& hStmt)
             endLoop = true;
         }
     }
-
-
 }
