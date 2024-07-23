@@ -8,6 +8,7 @@ protected:
     int CustomerDiscount;
 public:
     void Login(SQLHSTMT &hStmt) override;
+    void Input(SQLHSTMT &hStmt, wstring PhNum) override;
     void ReserveATable();
     void SelectAMenu();
     void ReviewAfterEating();

@@ -221,7 +221,7 @@ void DisplayResults(HSTMT       hStmt,
 
     // Set the display mode and write the titles
 
-    // DisplayTitles(hStmt, cDisplaySize + 1, pFirstBinding);
+    DisplayTitles(hStmt, cDisplaySize + 1, pFirstBinding);
 
 
     // Fetch and display the data

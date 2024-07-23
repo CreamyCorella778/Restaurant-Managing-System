@@ -8,6 +8,7 @@ protected:
     int StaffStartYear;
 public:
     void Login(SQLHSTMT &hStmt) override;
+    void Input(SQLHSTMT &hStmt) override;
     void CreateTable();
     void ChangeTableStatus();
     void RemoveTable();

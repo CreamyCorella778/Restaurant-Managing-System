@@ -6,5 +6,6 @@ class StandardCustomer :
 {
 public:
     void PromoteToVIP();
+    void Input(SQLHSTMT &hStmt, wstring PhNum) override;
 };
 

@@ -9,7 +9,7 @@ public:
 	Person* createPersonByAccountType(int AccType);
 	virtual void Login(SQLHSTMT &hStmt);
 	void Logout();
-	void Input(SQLHSTMT &hStmt);
+	virtual void Input(SQLHSTMT &hStmt, wstring PhNum);
 	void Output();
 	void ChangeAccIn4();
 };

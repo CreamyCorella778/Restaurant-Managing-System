@@ -22,12 +22,11 @@ Person* Person::createPersonByAccountType(int AccType)
 
 void Person::Logout()
 {
-
+	// ??? khong xac dinh hanh dong
 }
 
 void Person::Input(SQLHSTMT &hStmt)
 {
-
 }
 
 void Person::Output()
