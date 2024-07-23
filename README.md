@@ -6,30 +6,30 @@ Database: Microsoft SQL Server
 Description (In Vietnamese):
 
 - Nhân viên:
-	Đăng nhập và hiển thị, thay đổi thông tin tài khoản nhân viên quản lý web
-	Tạo chi nhánh mới, tạo chỗ mới
-	Thay đổi thông tin chỗ, hủy chỗ
-	Theo dõi trạng thái của bàn, sắp xếp và gán bàn theo yêu cầu người dùng, quản lý số lượng bàn và khả năng chứa của từng bàn
-	Thêm mới, thay đổi, xóa thực đơn theo bàn
-	Tính toán giá tiền đặt bàn theo thực đơn và các chi phí phát sinh
-	Tạo, hiển thị và in hóa đơn cho người dùng
-	Theo dõi doanh thu và thống kê theo điều kiện
-	Quản lý các đặc quyền của VIP
-	Quản lý các chương trình khuyến mãi theo thời gian
+  + Đăng nhập và hiển thị, thay đổi thông tin tài khoản nhân viên quản lý web
+  + Tạo chi nhánh mới, tạo chỗ mới
+  + Thay đổi thông tin chỗ, hủy chỗ
+  + Theo dõi trạng thái của bàn, sắp xếp và gán bàn theo yêu cầu người dùng, quản lý số lượng bàn và khả năng chứa của từng bàn
+  + Thêm mới, thay đổi, xóa thực đơn theo bàn
+  + Tính toán giá tiền đặt bàn theo thực đơn và các chi phí phát sinh
+  + Tạo, hiển thị và in hóa đơn cho người dùng
+  + Theo dõi doanh thu và thống kê theo điều kiện
+  + Quản lý các đặc quyền của VIP
+  + Quản lý các chương trình khuyến mãi theo thời gian
 - Người dùng:
-	Đăng nhập và hiển thị, thay đổi thông tin tài khoản người dùng
-	Đặt bàn (Tìm kiếm và hiển thị thông tin chi nhánh): Chọn ngày/giờ, chọn thương hiệu đồ ăn, chọn tỉnh/thành phố/phường
-	Hủy hoặc thay đổi thông tin đặt bàn (theo thời hạn trước xxx ngày kể từ ngày đi ăn)
-	Đăng ký tài khoản VIP với điều kiện tích lũy tổng tiền đã sử dụng phải trên xxx tiền => ... 
-	Xem thực đơn
-	Xem lịch sử đặt bàn
-	Đánh giá bàn và trải nghiệm ăn uống tại chi nhánh
-	Xem hóa đơn điện tử với tùy chọn in
+  + Đăng nhập và hiển thị, thay đổi thông tin tài khoản người dùng
+  + Đặt bàn (Tìm kiếm và hiển thị thông tin chi nhánh): Chọn ngày/giờ, chọn thương hiệu đồ ăn, chọn tỉnh/thành phố/phường
+  + Hủy hoặc thay đổi thông tin đặt bàn (theo thời hạn trước xxx ngày kể từ ngày đi ăn)
+  + Đăng ký tài khoản VIP với điều kiện tích lũy tổng tiền đã sử dụng phải trên xxx tiền => ...
+  + Xem thực đơn
+  + Xem lịch sử đặt bàn
+  + Đánh giá bàn và trải nghiệm ăn uống tại chi nhánh
+  + Xem hóa đơn điện tử với tùy chọn in
 
 - Giao diện:
-	Hiển thị quy trình đặt bàn
-	Bàn: Hiển thị ngày giờ, địa chỉ rõ ràng, số điện thoại liên hệ
-	...
+  + Hiển thị quy trình đặt bàn
+  + Bàn: Hiển thị ngày giờ, địa chỉ rõ ràng, số điện thoại liên hệ
+  + ...
 
 Mô tả CSDL
 - Một chuỗi nhà hàng của một thương hiệu rất lớn mở nhiều chi nhánh,
@@ -58,16 +58,16 @@ Các thông tin trên hóa đơn: mã hd (duy nhất trên cả hệ thống), n
 
 
 Cơ sở dữ liệu quan hệ:
-Bàn ăn(Mã CN, Tọa độ BA, Số lượng ghế)
-Chi nhánh(Mã CN, Tên CN, Địa chỉ CN, SDT, Giờ mở cửa, Giờ đóng cửa, Thương hiệu con)
-Khách hàng(Mã KH, Tên KH, SDT, Loại KH)
-Nhân viên(Mã NV, Tên NV, SDT, Năm bắt đầu, Mã CN, Mã NVQL)
-Thực đơn(Mã TD, Giá tiền)
-Món ăn(Mã MA, Tên MA, Loại MA)
-Review(Mã HD, Số sao, Chi tiết)
-Hóa đơn(Mã HD, Ngày giờ đặt, Ngày giờ ăn, Số người ăn, Mã CN, Tọa độ BA, Mã KH)
-CT_Bàn ăn(Mã CN, Tọa độ BA, Mã TD)
-CT_Thực đơn(Mã TD, Mã MA)
+- Bàn ăn(Mã CN, Tọa độ BA, Số lượng ghế)
+- Chi nhánh(Mã CN, Tên CN, Địa chỉ CN, SDT, Giờ mở cửa, Giờ đóng cửa, Thương hiệu con)
+- Khách hàng(Mã KH, Tên KH, SDT, Loại KH)
+- Nhân viên(Mã NV, Tên NV, SDT, Năm bắt đầu, Mã CN, Mã NVQL)
+- Thực đơn(Mã TD, Giá tiền)
+- Món ăn(Mã MA, Tên MA, Loại MA)
+- Review(Mã HD, Số sao, Chi tiết)
+- Hóa đơn(Mã HD, Ngày giờ đặt, Ngày giờ ăn, Số người ăn, Mã CN, Tọa độ BA, Mã KH)
+- CT_Bàn ăn(Mã CN, Tọa độ BA, Mã TD)
+- CT_Thực đơn(Mã TD, Mã MA)
 
 
 Sơ đồ lớp OOP
