@@ -7,8 +7,9 @@ class Customer :
 protected:
     int CustomerDiscount;
 public:
-    void Login(SQLHSTMT &hStmt) override;
+    wstring Login(SQLHSTMT &hStmt) override;
     void Input(SQLHSTMT &hStmt, wstring PhNum) override;
+    Customer* IdentifyCustomerType(SQLHSTMT &hStmt)
     void ReserveATable();
     void SelectAMenu();
     void ReviewAfterEating();

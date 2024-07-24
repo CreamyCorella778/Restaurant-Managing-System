@@ -1,8 +1,9 @@
-#include "Customer.h"
+#include "VIPCustomer.h"
+#include "StandardCustomer.h"
 
-void Customer::Login(SQLHSTMT& hStmt)
+wstring Customer::Login(SQLHSTMT& hStmt)
 {
-    wstring PhNum, Password, PasswordFromDB;
+    wstring PhNum, Password, PasswordFromDB, ID;
     bool endLoop = false;
     int count = 0;
 
@@ -13,12 +14,15 @@ void Customer::Login(SQLHSTMT& hStmt)
     {
         wcout << L"Nhap sdt: "; wcin >> PhNum;
 
-        wstring sqlQuery = L"select password from customer c where c.sdt = " + PhNum;
-
-        // Execute the query
+        // Using parameterized query to prevent SQL injection
+        wstring sqlQuery = L"SELECT makh, matkhau FROM khachhang WHERE sdt = ?";
+        
         WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
         memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+
+        SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)PhNum.c_str(), 0, nullptr);
         RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+        delete[] wszInput;
 
         switch (RetCode)
         {
@@ -36,7 +40,7 @@ void Customer::Login(SQLHSTMT& hStmt)
                 BINDING* pFirstBinding, * pThisBinding; // 1 dslk co dau la FirstBinding, con tro chi so la ThisBinding
                 SQLSMALLINT     cDisplaySize;
                 RetCode = SQL_SUCCESS;
-                int             iCount = 0;
+                // int             iCount = 0;
 
                 // Allocate memory for each column
                 AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
@@ -49,24 +53,10 @@ void Customer::Login(SQLHSTMT& hStmt)
 
                     if (RetCode == SQL_NO_DATA_FOUND)
                     {
-                        // In ra ket qua khong tim thay khach hang co sdt, nhap lai
-                        fNoData = true;
-                        // Giai phong bo nho cu
-                        while (pFirstBinding)
-                        {
-                            pThisBinding = pFirstBinding->sNext;
-                            free(pFirstBinding->wszBuffer);
-                            free(pFirstBinding);
-                            pFirstBinding = pThisBinding;
-                        }
-                        ++count;
-                        if (count > 5)
-                        {
-                            // in ra rang da het so lan nhap
+                        // Truong hop truy van khong co ket qua, in ra ket qua khong tim thay khach hang co sdt, nhap lai
+                        // pending...
+                        // Truong hop truy van het ket qua
                             fNoData = true;
-                        }
-                        else
-                            continue;
                     }
                     else // Work with the data. Ignore truncations
                     {
@@ -74,27 +64,9 @@ void Customer::Login(SQLHSTMT& hStmt)
                         {
                             if (pThisBinding->indPtr != SQL_NULL_DATA)
                             {
-                                PasswordFromDB = wstring(pThisBinding->wszBuffer);
+                                ID = wstring(pThisBinding->wszBuffer);
                                 endLoop = true;
-                            }
-                            else
-                            {
-                                // Giai phong bo nho cu
-                                while (pFirstBinding)
-                                {
-                                    pThisBinding = pFirstBinding->sNext;
-                                    free(pFirstBinding->wszBuffer);
-                                    free(pFirstBinding);
-                                    pFirstBinding = pThisBinding;
-                                }
-                                ++count;
-                                if (count > 5)
-                                {
-                                    // in ra rang da het so lan nhap
-                                    fNoData = true;
-                                }
-                                else
-                                    continue;
+                                PasswordFromDB = wstring(pThisBinding->sNext->wszBuffer);
                             }
                         }
                     }
@@ -110,25 +82,16 @@ void Customer::Login(SQLHSTMT& hStmt)
                     free(pFirstBinding);
                     pFirstBinding = pThisBinding;
                 }
-            }
-            else // Neu lenh SQL la insert, delete, update, create,...
+
+            if (++count > 5)
             {
-                SQLLEN cRowCount;
-
-                TRYODBC(hStmt,
-                    SQL_HANDLE_STMT,
-                    SQLRowCount(hStmt, &cRowCount));
-
-                if (cRowCount >= 0)
-                {
-                    // In ra so dong bi anh huong
-                    /*wprintf(L"%Id %s affected\n",
-                        cRowCount,
-                        cRowCount == 1 ? L"row" : L"rows");*/
-                }
+                // wcout << L"Da vuot qua so lan thu toi da.\n";
+                ID.clear();
+                return ID;
             }
-            break;
+            }
         }
+        break;
 
         case SQL_ERROR:
         {
@@ -138,12 +101,9 @@ void Customer::Login(SQLHSTMT& hStmt)
 
         default:
             fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
-
         }
         // Giai phong tai nguyen lien quan den truy van
-        TRYODBC(hStmt,
-            SQL_HANDLE_STMT,
-            SQLFreeStmt(hStmt, SQL_CLOSE));
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
     }
 
     count = 0; endLoop = false;
@@ -160,202 +120,95 @@ void Customer::Login(SQLHSTMT& hStmt)
                 // in ra rang da het so lan nhap
                 endLoop = true;
             }
-            else
-                continue;
         }
         else // Neu dung mat khau
         {
             // Tra ve dau hieu da dang nhap thanh cong
             endLoop = true;
-            this->PersonPhNum = PhNum;
+            this->PersonID = ID;
+            return ID;
         }
     }
+    return L"";
 }
 
-void Customer::Input(SQLHSTMT &hStmt)
+Customer* Customer::IdentifyCustomerType(SQLHSTMT &hStmt)
 {
-    // bool endLoop = false;
-    // int count = 0;
+    Customer* cus;
 
-    // RETCODE     RetCode;
-    // SQLSMALLINT sNumResults;
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
 
-    // while (!endLoop)
-    // {
-    //     wstring sqlQuery = L"select * from customer c where c.sdt = " + this->PersonPhNum;
+    wstring sqlQuery = L"SELECT loaikh FROM khachhang WHERE makh = ?";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
 
-    //     // Execute the query
-    //     SQLWCHAR* wszInput = new SQLWCHAR[sqlQuery.size() + 1];
-    //     memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
-    //     RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        {
+            BINDING* pFirstBinding, * pThisBinding;
+            SQLSMALLINT     cDisplaySize;
+            RetCode = SQL_SUCCESS;
 
-    //     switch (RetCode)
-    //     {
-    //     case SQL_SUCCESS_WITH_INFO:
-    //     {
-    //         HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
-    //         // fall through
-    //     }
-    //     case SQL_SUCCESS:
-    //     {
-    //         // If this is a row-returning query, handle results
-    //         TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
-    //         if (sNumResults > 0) // Noi xu ly ket qua cau lenh 
-    //         {
-    //             BINDING* pFirstBinding, * pThisBinding; // 1 dslk co dau la FirstBinding, con tro chi so la ThisBinding
-    //             SQLSMALLINT     cDisplaySize;
-    //             RetCode = SQL_SUCCESS;
-    //             int             iCount = 0;
+            AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
 
-    //             // Allocate memory for each column
-    //             AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
+            bool fNoData = false;
+            do {
+                TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+                if (RetCode == SQL_NO_DATA_FOUND)
+                    fNoData = true;
+                else
+                    for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
+                    {
+                        if (pThisBinding->indPtr != SQL_NULL_DATA)
+                        {
+                            wstring type = wstring(pThisBinding->wszBuffer);
+                            if (type == L"VIP")
+                            {
+                                cus = new VIPCustomer;
+                                cus->PersonID = this->PersonID;
+                            }
+                            else if (type == L"Thường")
+                            {
+                                cus = new StandardCustomer;
+                                cus->PersonID = this->PersonID;
+                            }
+                            else
+                                cus = nullptr;
+                        }
+                    }
+            } while (!fNoData);
 
-    //             // Fetch and work with the data
-    //             bool fNoData = false;
-    //             do {
-    //                 // Fetch a row
-    //                 TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+        Exit:
+            while (pFirstBinding)
+            {
+                pThisBinding = pFirstBinding->sNext;
+                free(pFirstBinding->wszBuffer);
+                free(pFirstBinding);
+                pFirstBinding = pThisBinding;
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
 
-    //                 if (RetCode == SQL_NO_DATA_FOUND)
-    //                 {
-    //                     // In ra ket qua khong tim thay khach hang co sdt, nhap lai
-    //                     fNoData = true;
-    //                     // Giai phong bo nho cu
-    //                     while (pFirstBinding)
-    //                     {
-    //                         pThisBinding = pFirstBinding->sNext;
-    //                         free(pFirstBinding->wszBuffer);
-    //                         free(pFirstBinding);
-    //                         pFirstBinding = pThisBinding;
-    //                     }
-    //                     ++count;
-    //                     if (count > 5)
-    //                     {
-    //                         // in ra rang da het so lan nhap
-    //                         fNoData = true;
-    //                     }
-    //                     else
-    //                         continue;
-    //                 }
-    //                 else // Work with the data. Ignore truncations
-    //                 {
-    //                     pThisBinding = pFirstBinding;
-    //                     this->PersonID = pThisBinding->wszBuffer;
-    //                     pThisBinding = pThisBinding->sNext;
-    //                     if (pThisBinding->indPtr != SQL_NULL_DATA)
-    //                         this->PersonName = pThisBinding->wszBuffer;
-    //                     pThisBinding = pThisBinding->sNext;
-    //                     if (pThisBinding->indPtr != SQL_NULL_DATA)
-    //                         this->PersonPhNum = pThisBinding->wszBuffer;
-    //                     pThisBinding = pThisBinding->sNext;
-    //                     pThisBinding = pThisBinding->sNext;
-    //                     wstring LoaiKH;
-    //                     if (pThisBinding->indPtr != SQL_NULL_DATA)
-    //                         LoaiKH = pThisBinding->wszBuffer;
-    //                     this->CustomerDiscount = 0;
-    //                     for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
-    //                     {
-    //                         if (pThisBinding->indPtr != SQL_NULL_DATA)
-    //                         {
-    //                             // This action only works well when Password & PhNum contain only ASCII chars
-    //                             this->PersonID = 
-    //                             wstring ws(pThisBinding->wszBuffer);
-    //                             string s_pTBBuffer(ws.begin(), ws.end());
-    //                             PasswordFromDB = s_pTBBuffer;
-    //                             endLoop = true;
-    //                         }
-    //                         else
-    //                         {
-    //                             // Giai phong bo nho cu
-    //                             while (pFirstBinding)
-    //                             {
-    //                                 pThisBinding = pFirstBinding->sNext;
-    //                                 free(pFirstBinding->wszBuffer);
-    //                                 free(pFirstBinding);
-    //                                 pFirstBinding = pThisBinding;
-    //                             }
-    //                             ++count;
-    //                             if (count > 5)
-    //                             {
-    //                                 // in ra rang da het so lan nhap
-    //                                 fNoData = true;
-    //                             }
-    //                             else
-    //                                 continue;
-    //                         }
-    //                     }
-    //                 }
-    //             } while (!fNoData);
-
-    //         Exit:
-    //             // Clean up the allocated buffers
-
-    //             while (pFirstBinding)
-    //             {
-    //                 pThisBinding = pFirstBinding->sNext;
-    //                 free(pFirstBinding->wszBuffer);
-    //                 free(pFirstBinding);
-    //                 pFirstBinding = pThisBinding;
-    //             }
-    //         }
-    //         else // Neu lenh SQL la insert, delete, update, create,...
-    //         {
-    //             SQLLEN cRowCount;
-
-    //             TRYODBC(hStmt,
-    //                 SQL_HANDLE_STMT,
-    //                 SQLRowCount(hStmt, &cRowCount));
-
-    //             if (cRowCount >= 0)
-    //             {
-    //                 // In ra so dong bi anh huong
-    //                 /*wprintf(L"%Id %s affected\n",
-    //                     cRowCount,
-    //                     cRowCount == 1 ? L"row" : L"rows");*/
-    //             }
-    //         }
-    //         break;
-    //     }
-
-    //     case SQL_ERROR:
-    //     {
-    //         HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
-    //         break;
-    //     }
-
-    //     default:
-    //         fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
-
-    //     }
-    //     // Giai phong tai nguyen lien quan den truy van
-    //     TRYODBC(hStmt,
-    //         SQL_HANDLE_STMT,
-    //         SQLFreeStmt(hStmt, SQL_CLOSE));
-    // }
-
-    // count = 0; endLoop = false;
-    // while (!endLoop)
-    // {
-    //     cout << "Nhap mat khau: "; getline(cin, Password);
-
-    //     // Neu mat khau da luu trong co so du lieu khong phai la mat khau da nhap
-    //     if (PasswordFromDB != Password)
-    //     {
-    //         ++count;
-    //         if (count > 5)
-    //         {
-    //             // in ra rang da het so lan nhap
-    //             endLoop = true;
-    //         }
-    //         else
-    //             continue;
-    //     }
-    //     else // Neu dung mat khau
-    //     {
-    //         // Tra ve dau hieu da dang nhap thanh cong
-    //         endLoop = true;
-    //     }
-    // }
-
-    
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+    return cus;
 }
