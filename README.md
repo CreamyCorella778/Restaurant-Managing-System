@@ -60,8 +60,8 @@ Các thông tin trên hóa đơn: mã hd (duy nhất trên cả hệ thống), n
 Cơ sở dữ liệu quan hệ:
 - Bàn ăn(Mã CN, Tọa độ BA, Số lượng ghế)
 - Chi nhánh(Mã CN, Tên CN, Địa chỉ CN, SDT, Giờ mở cửa, Giờ đóng cửa, Thương hiệu con)
-- Khách hàng(Mã KH, Tên KH, SDT, Loại KH)
-- Nhân viên(Mã NV, Tên NV, SDT, Năm bắt đầu, Mã CN, Mã NVQL)
+- Khách hàng(Mã KH, Tên KH, SDT, Mật khẩu, Loại KH)
+- Nhân viên(Mã NV, Tên NV, SDT, Mật khẩu, Năm bắt đầu, Mã CN, Mã NVQL)
 - Thực đơn(Mã TD, Giá tiền)
 - Món ăn(Mã MA, Tên MA, Loại MA)
 - Review(Mã HD, Số sao, Chi tiết)
