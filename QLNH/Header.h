@@ -11,8 +11,12 @@
 //------------------------
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 #include <string>
 #include <vector>
+#include <random>
 
 using namespace std;
 
@@ -74,3 +78,13 @@ void SetConsole(DWORD   cDisplaySize,
 #define PIPE                L'|'
 
 SHORT   gHeight = 80;       // Users screen height
+
+
+
+//-------------------------------------
+/************************************** */
+/* Other secondary function             */
+/************************************** */
+
+wstring randomForIDs();
+wstring getTodayDate();

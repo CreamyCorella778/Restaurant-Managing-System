@@ -1,5 +1,6 @@
 #pragma once
 #include "Person.h"
+#include "Table.h"
 
 class Customer :
     public Person
@@ -9,13 +10,13 @@ protected:
 public:
     wstring Login(SQLHSTMT &hStmt) override;
     void Input(SQLHSTMT &hStmt, wstring PhNum) override;
-    Customer* IdentifyCustomerType(SQLHSTMT &hStmt)
-    void ReserveATable();
-    void SelectAMenu();
-    void ReviewAfterEating();
-    void ChangeReservationIn4();
-    void ViewMenu();
-    void ViewReserveHistory();
-    void ViewReceipt();
+    Customer* IdentifyCustomerType(SQLHSTMT &hStmt);
+    Receipt* ReserveATable(SQLHSTMT &hStmt, Table table);
+    void SelectAMenu(SQLHSTMT &hStmt);
+    void ReviewAfterEating(SQLHSTMT &hStmt);
+    void ChangeReservationIn4(SQLHSTMT &hStmt);
+    void ViewMenu(SQLHSTMT &hStmt);
+    void ViewReserveHistory(SQLHSTMT &hStmt);
+    void ViewReceipt(SQLHSTMT &hStmt);
 };
 

@@ -2,14 +2,9 @@
 
 void StandardCustomer::Input(SQLHSTMT &hStmt, wstring PhNum)
 {
-    bool endLoop = false;
-    int count = 0;
-
     RETCODE     RetCode;
     SQLSMALLINT sNumResults;
 
-    while (!endLoop)
-    {
         wstring sqlQuery = L"select k.makh, k.tenkh, k.sdt from khachhang k where k.sdt = " + PhNum;
 
         // Execute the query
@@ -45,26 +40,7 @@ void StandardCustomer::Input(SQLHSTMT &hStmt, wstring PhNum)
                     TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
 
                     if (RetCode == SQL_NO_DATA_FOUND)
-                    {
-                        // In ra ket qua khong tim thay khach hang co sdt, nhap lai
-                        fNoData = true;
-                        // Giai phong bo nho cu
-                        while (pFirstBinding)
-                        {
-                            pThisBinding = pFirstBinding->sNext;
-                            free(pFirstBinding->wszBuffer);
-                            free(pFirstBinding);
-                            pFirstBinding = pThisBinding;
-                        }
-                        ++count;
-                        if (count > 5)
-                        {
-                            // in ra rang da het so lan nhap
-                            fNoData = true;
-                        }
-                        else
-                            continue;
-                    }
+                    {                    }
                     else // Work with the data. Ignore truncations
                     {
                         pThisBinding = pFirstBinding;
@@ -81,37 +57,6 @@ void StandardCustomer::Input(SQLHSTMT &hStmt, wstring PhNum)
                         if (pThisBinding->indPtr != SQL_NULL_DATA)
                             LoaiKH = pThisBinding->wszBuffer;
                         this->CustomerDiscount = 0;
-                        for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
-                        {
-                            if (pThisBinding->indPtr != SQL_NULL_DATA)
-                            {
-                                // This action only works well when Password & PhNum contain only ASCII chars
-                                this->PersonID = 
-                                wstring ws(pThisBinding->wszBuffer);
-                                string s_pTBBuffer(ws.begin(), ws.end());
-                                PasswordFromDB = s_pTBBuffer;
-                                endLoop = true;
-                            }
-                            else
-                            {
-                                // Giai phong bo nho cu
-                                while (pFirstBinding)
-                                {
-                                    pThisBinding = pFirstBinding->sNext;
-                                    free(pFirstBinding->wszBuffer);
-                                    free(pFirstBinding);
-                                    pFirstBinding = pThisBinding;
-                                }
-                                ++count;
-                                if (count > 5)
-                                {
-                                    // in ra rang da het so lan nhap
-                                    fNoData = true;
-                                }
-                                else
-                                    continue;
-                            }
-                        }
                     }
                 } while (!fNoData);
 
@@ -126,23 +71,6 @@ void StandardCustomer::Input(SQLHSTMT &hStmt, wstring PhNum)
                     pFirstBinding = pThisBinding;
                 }
             }
-            else // Neu lenh SQL la insert, delete, update, create,...
-            {
-                SQLLEN cRowCount;
-
-                TRYODBC(hStmt,
-                    SQL_HANDLE_STMT,
-                    SQLRowCount(hStmt, &cRowCount));
-
-                if (cRowCount >= 0)
-                {
-                    // In ra so dong bi anh huong
-                    /*wprintf(L"%Id %s affected\n",
-                        cRowCount,
-                        cRowCount == 1 ? L"row" : L"rows");*/
-                }
-            }
-            break;
         }
 
         case SQL_ERROR:
@@ -156,32 +84,5 @@ void StandardCustomer::Input(SQLHSTMT &hStmt, wstring PhNum)
 
         }
         // Giai phong tai nguyen lien quan den truy van
-        TRYODBC(hStmt,
-            SQL_HANDLE_STMT,
-            SQLFreeStmt(hStmt, SQL_CLOSE));
-    }
-
-    count = 0; endLoop = false;
-    while (!endLoop)
-    {
-        cout << "Nhap mat khau: "; getline(cin, Password);
-
-        // Neu mat khau da luu trong co so du lieu khong phai la mat khau da nhap
-        if (PasswordFromDB != Password)
-        {
-            ++count;
-            if (count > 5)
-            {
-                // in ra rang da het so lan nhap
-                endLoop = true;
-            }
-            else
-                continue;
-        }
-        else // Neu dung mat khau
-        {
-            // Tra ve dau hieu da dang nhap thanh cong
-            endLoop = true;
-        }
-    }
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
 }

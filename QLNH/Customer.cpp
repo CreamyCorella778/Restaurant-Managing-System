@@ -212,3 +212,84 @@ Customer* Customer::IdentifyCustomerType(SQLHSTMT &hStmt)
     TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
     return cus;
 }
+
+Receipt* Customer::ReserveATable(SQLHSTMT &hStmt, Table table)
+{
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+    bool fTableReady = true;
+
+    if (!table.isTableAvailable())
+    {
+        //In thong bao table khong kha dung de dat
+        return nullptr;
+    }
+
+    int PersonCount = 0;
+    // Input person count
+
+    if (PersonCount > table.getSeatCapacity())
+    {
+        // In thong bao du nguoi an, khong dat cho duoc
+        return nullptr;
+    }
+
+    wstring mahd = L"HD" + randomForIDs();
+    wstring today = getTodayDate();
+    wstring sqlQuery = L"insert into hoadon (MaHD, NgayGioDat, SoNguoiAn, MaCN, ToaDoBA, MaKH) values (?, ?, ?, ?, ?, ?)";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)mahd.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)today.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)to_wstring(PersonCount).c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)table.getBranchID().c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 5, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)table.getTablePos().c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 6, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        { // Khong lam gi ca vi day khong phai la truy van        
+        }
+        else
+        {
+            SQLLEN cRowCount;
+
+            TRYODBC(hStmt, SQL_HANDLE_STMT, SQLRowCount(hStmt,&cRowCount));
+
+            if (cRowCount >= 0)
+            {
+                // In ra so hang bi anh huong
+                
+                // wprintf(L"%Id %s affected\n",
+                //             cRowCount,
+                //             cRowCount == 1 ? L"row" : L"rows");
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        return nullptr;
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+        return nullptr;
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+    
+    Receipt* res = new Receipt(...);
+    return res;
+
+}
+
