@@ -87,6 +87,7 @@ CREATE TABLE HoaDon (
     SoNguoiAn INT,
     MaCN CHAR(10),
     ToaDoBA CHAR(10),
+	MaTD CHAR(10),
     MaKH CHAR(10),
     FOREIGN KEY (MaKH) REFERENCES KhachHang(MaKH),
 	foreign key (macn, toadoba) references banan(macn, toadoba)
@@ -160,9 +161,13 @@ INSERT INTO Review (MaHD, SoSao, ChiTiet) VALUES
 ('HD002', 3.0, N'Dịch vụ trung bình, món ăn ổn');
 
 -- Insert dữ liệu vào bảng Hóa đơn
-INSERT INTO HoaDon (MaHD, NgayGioDat, NgayGioAn, SoNguoiAn, MaCN, ToaDoBA, MaKH) VALUES
-('HD001', '2024-07-01 12:00:00', '2024-07-01 18:00:00', 4, 'CN001', 'A1', 'KH001'),
-('HD002', '2024-07-02 13:00:00', '2024-07-02 19:00:00', 2, 'CN002', 'B1', 'KH002');
+INSERT INTO HoaDon (MaHD, NgayGioDat, NgayGioAn, SoNguoiAn, MaCN, ToaDoBA, MaTD, MaKH) VALUES
+('HD001', '2023-07-01 12:00:00', '2023-07-01 18:00:00', 4, 'CN001', 'A1', 'TD001', 'KH001'),
+('HD002', '2023-07-05 14:30:00', '2023-07-05 20:00:00', 2, 'CN002', 'B1', 'TD002', 'KH002'),
+('HD003', '2023-07-10 10:00:00', '2023-07-10 12:30:00', 6, 'CN003', 'A1', 'TD001', 'KH001'),
+('HD004', '2023-07-15 18:00:00', '2023-07-15 19:30:00', 8, 'CN001', 'A2', 'TD002', 'KH002'),
+('HD005', '2023-07-20 11:00:00', '2023-07-20 13:00:00', 10, 'CN002', 'B2', 'TD001', 'KH001');
+
 
 -- Insert dữ liệu vào bảng CT_Bàn ăn
 INSERT INTO CT_BanAn (MaCN, ToaDoBA, MaTD) VALUES

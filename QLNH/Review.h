@@ -8,5 +8,7 @@ private:
 public:
 	void Input();
 	void Output();
+	float getStars();
+	wstring getDetails();
 };
 

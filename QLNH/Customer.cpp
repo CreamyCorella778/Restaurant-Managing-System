@@ -293,3 +293,381 @@ Receipt* Customer::ReserveATable(SQLHSTMT &hStmt, Table table)
 
 }
 
+void Customer::SelectAMenu(SQLHSTMT &hStmt)
+{
+
+}
+
+void Customer::ReviewAfterEating(SQLHSTMT &hStmt)
+{
+    Review rv;
+    rv.Input();
+    wstring receiptid;
+
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+
+    wstring sqlQuery = L"SELECT hd.mahd from hoadon hd where hd.makh = ? and (hd.ngaygioan is null or hd.ngaygioan >= all (select hd2.ngaygioan from hoadon hd2 where hd2.makh = ?))";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        {
+            BINDING* pFirstBinding, * pThisBinding;
+            SQLSMALLINT     cDisplaySize;
+            RetCode = SQL_SUCCESS;
+
+            AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
+
+            bool fNoData = false;
+            do {
+                TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+                if (RetCode == SQL_NO_DATA_FOUND)
+                    fNoData = true;
+                else
+                    for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
+                    {
+                        if (pThisBinding->indPtr != SQL_NULL_DATA)
+                        {
+                            receiptid = wstring(pThisBinding->wszBuffer);
+                        }
+                    }
+            } while (!fNoData);
+
+        Exit:
+            while (pFirstBinding)
+            {
+                pThisBinding = pFirstBinding->sNext;
+                free(pFirstBinding->wszBuffer);
+                free(pFirstBinding);
+                pFirstBinding = pThisBinding;
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+
+    }
+    // TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+    
+    wstring sqlQuery = L"insert into review values (?, ?, ?)";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)receiptid.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)to_wstring(rv.getStars()).c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)rv.getDetails().c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        { // Khong lam gi ca vi day khong phai la truy van        
+        }
+        else
+        {
+            SQLLEN cRowCount;
+
+            TRYODBC(hStmt, SQL_HANDLE_STMT, SQLRowCount(hStmt,&cRowCount));
+
+            if (cRowCount >= 0)
+            {
+                // In ra so hang bi anh huong
+                
+                // wprintf(L"%Id %s affected\n",
+                //             cRowCount,
+                //             cRowCount == 1 ? L"row" : L"rows");
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+
+}
+
+void Customer::ViewMenu(SQLHSTMT &hStmt)
+{
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+
+    wstring sqlQuery = L"SELECT td.matd, td.giatien, ma.tenma, ma.loaima from thucdon td join ct_thucdon ct on ct.matd = td.matd join monan ma on ma.mama = ct.mama join hoadon hd on hd.matd = ct.matd where hd.makh = ? and (hd.ngaygioan is null or hd.ngaygioan >= all (select hd2.ngaygioan from hoadon hd2 where hd2.makh = ?))";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        {
+            BINDING* pFirstBinding, * pThisBinding;
+            SQLSMALLINT     cDisplaySize;
+            RetCode = SQL_SUCCESS;
+
+            AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
+
+            bool fNoData = false;
+            do {
+                TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+                if (RetCode == SQL_NO_DATA_FOUND)
+                    fNoData = true;
+                else
+                    for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
+                    {
+                        if (pThisBinding->indPtr != SQL_NULL_DATA)
+                        {
+                            // Output the query result here
+                        }
+                    }
+            } while (!fNoData);
+
+        Exit:
+            while (pFirstBinding)
+            {
+                pThisBinding = pFirstBinding->sNext;
+                free(pFirstBinding->wszBuffer);
+                free(pFirstBinding);
+                pFirstBinding = pThisBinding;
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+}
+
+void Customer::ViewReserveHistory(SQLHSTMT &hStmt)
+{
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+
+    wstring sqlQuery = L"SELECT hd.* from hoadon hd where hd.makh = ?";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        {
+            BINDING* pFirstBinding, * pThisBinding;
+            SQLSMALLINT     cDisplaySize;
+            RetCode = SQL_SUCCESS;
+
+            AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
+
+            bool fNoData = false;
+            do {
+                TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+                if (RetCode == SQL_NO_DATA_FOUND)
+                    fNoData = true;
+                else
+                    for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
+                    {
+                        if (pThisBinding->indPtr != SQL_NULL_DATA)
+                        {
+                            // Output the query result here
+                        }
+                    }
+            } while (!fNoData);
+
+        Exit:
+            while (pFirstBinding)
+            {
+                pThisBinding = pFirstBinding->sNext;
+                free(pFirstBinding->wszBuffer);
+                free(pFirstBinding);
+                pFirstBinding = pThisBinding;
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+}
+
+void Customer::ViewReceipt(SQLHSTMT &hStmt)
+{
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+
+    wstring sqlQuery = L"SELECT hd.* from hoadon hd where hd.makh = ? and (hd.ngaygioan is null or hd.ngaygioan >= all (select hd2.ngaygioan from hoadon hd2 where hd2.makh = ?))";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)this->PersonID.c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        {
+            BINDING* pFirstBinding, * pThisBinding;
+            SQLSMALLINT     cDisplaySize;
+            RetCode = SQL_SUCCESS;
+
+            AllocateBindings(hStmt, sNumResults, &pFirstBinding, &cDisplaySize);
+
+            bool fNoData = false;
+            do {
+                TRYODBC(hStmt, SQL_HANDLE_STMT, RetCode = SQLFetch(hStmt));
+                if (RetCode == SQL_NO_DATA_FOUND)
+                    fNoData = true;
+                else
+                    for (pThisBinding = pFirstBinding; pThisBinding; pThisBinding = pThisBinding->sNext)
+                    {
+                        if (pThisBinding->indPtr != SQL_NULL_DATA)
+                        {
+                            // Output the query result here
+                        }
+                    }
+            } while (!fNoData);
+
+        Exit:
+            while (pFirstBinding)
+            {
+                pThisBinding = pFirstBinding->sNext;
+                free(pFirstBinding->wszBuffer);
+                free(pFirstBinding);
+                pFirstBinding = pThisBinding;
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+}
+
+void Customer::ChangeReservationIn4(SQLHSTMT &hStmt)
+{
+    // Hien thi menu hien thi toan bo nhung noi co the thay doi cung o trong de chinh sua
+    // Ghi nhan cac thay doi bang cac bien
+    // Chinh sua du lieu trong csdl
+    RETCODE     RetCode;
+    SQLSMALLINT sNumResults;
+    wstring sqlQuery = L"update table hoadon set ? = ?, ? = ?,... where makh = ? and ngaygioan is null";
+    WCHAR* wszInput = new WCHAR[sqlQuery.size() + 1];
+    memcpy(wszInput, sqlQuery.c_str(), sqlQuery.size() + 1);
+    SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)receiptid.c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)to_wstring(rv.getStars()).c_str(), 0, nullptr);
+    SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 0, 0, (SQLPOINTER)rv.getDetails().c_str(), 0, nullptr);
+    RetCode = SQLExecDirect(hStmt, wszInput, SQL_NTS);
+
+    switch (RetCode)
+    {
+    case SQL_SUCCESS_WITH_INFO:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+    }
+    case SQL_SUCCESS:
+    {
+        TRYODBC(hStmt, SQL_HANDLE_STMT, SQLNumResultCols(hStmt, &sNumResults));
+        if (sNumResults > 0) 
+        { // Khong lam gi ca vi day khong phai la truy van        
+        }
+        else
+        {
+            SQLLEN cRowCount;
+
+            TRYODBC(hStmt, SQL_HANDLE_STMT, SQLRowCount(hStmt,&cRowCount));
+
+            if (cRowCount >= 0)
+            {
+                // In ra so hang bi anh huong
+                
+                // wprintf(L"%Id %s affected\n",
+                //             cRowCount,
+                //             cRowCount == 1 ? L"row" : L"rows");
+            }
+        }
+        break;
+    }
+    case SQL_ERROR:
+    {
+        HandleDiagnosticRecord(hStmt, SQL_HANDLE_STMT, RetCode);
+        break;
+    }
+    default:
+        fwprintf(stderr, L"Unexpected return code %hd!\n", RetCode);
+    }
+    TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
+}
