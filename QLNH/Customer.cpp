@@ -132,9 +132,9 @@ wstring Customer::Login(SQLHSTMT& hStmt)
     return L"";
 }
 
-Customer* Customer::IdentifyCustomerType(SQLHSTMT &hStmt)
+bool Customer::IsVIPCustomer(SQLHSTMT &hStmt)
 {
-    Customer* cus;
+    bool isVIP = false;
 
     RETCODE     RetCode;
     SQLSMALLINT sNumResults;
@@ -175,16 +175,8 @@ Customer* Customer::IdentifyCustomerType(SQLHSTMT &hStmt)
                             wstring type = wstring(pThisBinding->wszBuffer);
                             if (type == L"VIP")
                             {
-                                cus = new VIPCustomer;
-                                cus->PersonID = this->PersonID;
+                                isVIP = true;
                             }
-                            else if (type == L"Thường")
-                            {
-                                cus = new StandardCustomer;
-                                cus->PersonID = this->PersonID;
-                            }
-                            else
-                                cus = nullptr;
                         }
                     }
             } while (!fNoData);
@@ -210,7 +202,7 @@ Customer* Customer::IdentifyCustomerType(SQLHSTMT &hStmt)
 
     }
     TRYODBC(hStmt, SQL_HANDLE_STMT, SQLFreeStmt(hStmt, SQL_CLOSE));
-    return cus;
+    return isVIP;
 }
 
 Receipt* Customer::ReserveATable(SQLHSTMT &hStmt, Table table)

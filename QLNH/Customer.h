@@ -10,7 +10,7 @@ protected:
 public:
     wstring Login(SQLHSTMT &hStmt) override;
     void Input(SQLHSTMT &hStmt, wstring PhNum) override;
-    Customer* IdentifyCustomerType(SQLHSTMT &hStmt);
+    bool IsVIPCustomer(SQLHSTMT &hStmt);
     Receipt* ReserveATable(SQLHSTMT &hStmt, Table table);
     void SelectAMenu(SQLHSTMT &hStmt);
     void ReviewAfterEating(SQLHSTMT &hStmt);

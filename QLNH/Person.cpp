@@ -2,7 +2,7 @@
 #include "Customer.h"
 #include "Staff.h"
 
-void Person::Login(SQLHSTMT &hStmt)
+wstring Person::Login(SQLHSTMT &hStmt)
 {}
 
 Person* Person::createPersonByAccountType(int AccType)
@@ -25,7 +25,7 @@ void Person::Logout()
 	// ??? khong xac dinh hanh dong
 }
 
-void Person::Input(SQLHSTMT &hStmt)
+void Person::Input(SQLHSTMT &hStmt, wstring PhNum)
 {
 }
 
