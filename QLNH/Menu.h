@@ -11,6 +11,9 @@ private:
 public:
 	void Input();
 	void Output();
-	bool isCompleteMenu();
+	bool IsCompleteMenu();
+	wstring GetMenuID();
+	int GetMenuPrice();
+	vector<Dish*> GetDishList();
 };
 

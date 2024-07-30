@@ -8,5 +8,8 @@ private:
 public:
 	void Input();
 	void Output();
+	wstring GetDishID();
+	wstring GetDishName();
+	wstring GetDishType();
 };
 

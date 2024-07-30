@@ -17,7 +17,7 @@ public:
     void AddMenu(SQLHSTMT &hStmt);
     void ChangeMenuIn4(SQLHSTMT &hStmt);
     void RemoveMenu(SQLHSTMT &hStmt);
-    void CreateReceipt(SQLHSTMT &hStmt);
+    Receipt* CreateReceipt(SQLHSTMT &hStmt, Table table);
     void ChangeReceiptIn4(SQLHSTMT &hStmt);
     void CalculateTotalBranchSale(SQLHSTMT &hStmt);
 };
